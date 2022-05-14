@@ -2,7 +2,7 @@ import math
 
 TRUCK_SPEED = 40         
 DRONE_SPEED = 50
-ENDURANCE_OF_DRONE = 30
+ENDURANCE_OF_DRONE = 10
 MAX_DISTANCE = 1000000
 
 def printByLine(list):
