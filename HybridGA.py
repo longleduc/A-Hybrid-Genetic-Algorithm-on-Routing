@@ -56,7 +56,9 @@ def calculateFitness(Dfinal, Rfinal):
 
         print("DroneRoute")
         printByLine(droneRoute)
-    
+        
+        # TODO: Calculate total time
+        
     return totalTime
 
 def populationInitial():
