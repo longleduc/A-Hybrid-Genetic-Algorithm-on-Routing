@@ -320,9 +320,9 @@ def crossOver():
                     weightD[j] += 1
         drandom = random.choices(Dtotal, weights=weightD, k=1)[0]
 
-        for route in range(len(Rfinal)):
+        for route in Rfinal:
             anchorPoint = abs(route[0][0]) - 1
-            if Dfinal[drandom] == anchorPoint:
+            if Dtotal[drandom] == anchorPoint:
                 Rtemp.append(route)
                 Rfinal.remove(route)
             else:
