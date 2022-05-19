@@ -5,6 +5,7 @@ DRONE_SPEED = 50
 ENDURANCE_OF_DRONE = 10
 MAX_DISTANCE = 1000000
 NO_OF_DRONE = 5
+DELTA = 0.0001
 
 def printByLine(list):
     for ele in list:
