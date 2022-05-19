@@ -1,6 +1,7 @@
 # HOW TO RUN THE CODE 
 # python HybridGA.py "name of instance file" e.g: python HybridGA.py 100.10.1
 from os import urandom
+from re import L
 from numpy.core.fromnumeric import sort
 from Utils import *
 import sys
@@ -13,6 +14,8 @@ noOfCustomer = 0
 noOfAnchorPoint = 0
 coorOfCustomers = []
 coorOfAnchorPoints = []
+droneRoute = []
+
 iterationMax = 0
 
 #Read data from txt file
@@ -35,11 +38,32 @@ def readData():
         coorOfAnchorPoints.append([float(tmp[0]), float(tmp[1])])
     return noOfCustomer, np.array(coorOfCustomers), noOfAnchorPoint, np.array(coorOfAnchorPoints)
 
+def calculateFitness(Dfinal, Rfinal):
+    totalTime = 0
+
+    droneRoute = [[[] for j in range(NO_OF_DRONE)] for i in range(noOfAnchorPoint)]
+    for i in range(noOfAnchorPoint):
+        if (len(Rfinal[i]) > 0):
+            for j in range(len(Rfinal[i])):
+                min = -1
+                for k in range(NO_OF_DRONE):
+                    if len(droneRoute[i][k]) == 0:
+                        if min == -1:
+                            min = k
+                    elif len(droneRoute[i][k]) < len(droneRoute[i][min]):
+                        min = k
+                droneRoute[i][min].append(Rfinal[i][j])
+
+        print("DroneRoute")
+        printByLine(droneRoute)
+    
+    return totalTime
+
 def populationInitial():
     population = []
     Dfinal = []
     Nfinal = []
-    for i in range(iterationMax):
+    for iteration in range(iterationMax):
         Dtemp = []
         Ntemp = []
         for i in range(noOfAnchorPoint):
@@ -92,10 +116,12 @@ def populationInitial():
             for i in range(len(Nnum)):
                 Ntemp.remove(Nnum[i])
         
+        print("Dfinal")
         print(Dfinal)
+        print("Nfinal")
         print(Nfinal)
 
-        Dnearest = []
+        Dnearest = [[] for i in range(noOfAnchorPoint)]
         for i in range(noOfCustomer):
             min = MAX_DISTANCE
             nearestAnchorPoint = 0
@@ -103,19 +129,63 @@ def populationInitial():
                 if (dist(coorOfCustomers[i], coorOfAnchorPoints[Dfinal[j]]) < min):
                     min = dist(coorOfCustomers[i], coorOfAnchorPoints[Dfinal[j]])
                     nearestAnchorPoint = j
-            Dnearest[Dfinal[nearestAnchorPoint]].append(i)      
-        while (len(Dfinal) > 0 and len(Nfinal) > 0):
-            d = Dfinal[i]
-            for i in range(len(Dcover[d])):
-                n = Dcover[d][i]
-                    # TODO: Create path for drone 
-                
+            Dnearest[Dfinal[nearestAnchorPoint]].append((i, dist(coorOfCustomers[i], coorOfAnchorPoints[Dfinal[nearestAnchorPoint]])))      
+        
+        print("Dnearest")
+        print(Dnearest)
+
+        Rtemp = [[] for i in range(noOfAnchorPoint)]
+        Rfinal = [[] for i in range(noOfAnchorPoint)]
+        for i in range(len(Dfinal)):
+            # Create route for drone
+            currentAnchorPoint = Dfinal[i]
+            Dnearest[currentAnchorPoint] = sorted(Dnearest[currentAnchorPoint], key=lambda x: (x[1]), reverse=True)
+            currentRoute = [-1]
+            totalDistance = 0
+            for j in range(len(Dnearest[currentAnchorPoint])):
+                currentCustomer = Dnearest[currentAnchorPoint][j][0]
+                if (currentRoute[-1] == -1):
+                    totalDistance += dist(coorOfAnchorPoints[currentAnchorPoint], coorOfCustomers[currentCustomer])
+                else:
+                    totalDistance += dist(coorOfCustomers[currentRoute[-1]], coorOfCustomers[currentCustomer])
+                if (totalDistance + dist(coorOfCustomers[currentCustomer], coorOfAnchorPoints[currentAnchorPoint]) <= ENDURANCE_OF_DRONE):
+                    currentRoute.append(currentCustomer)
+                    tempRoute = copy.deepcopy(currentRoute)
+                    tempRoute.append(-1)
+                    Rtemp[currentAnchorPoint].append((tempRoute, totalDistance + dist(coorOfCustomers[currentCustomer], coorOfAnchorPoints[currentAnchorPoint])))
+                else:
+                    currentRoute = [-1]
+                    currentRoute.append(currentCustomer)
+                    totalDistance = dist(coorOfAnchorPoints[currentAnchorPoint], coorOfCustomers[currentCustomer])
+                    tempRoute = copy.deepcopy(currentRoute)
+                    tempRoute.append(-1)
+                    Rtemp[currentAnchorPoint].append((tempRoute, totalDistance + dist(coorOfCustomers[currentCustomer], coorOfAnchorPoints[currentAnchorPoint])))
+
+            Rtemp[currentAnchorPoint] = sorted(Rtemp[currentAnchorPoint], key=lambda x: (x[1]), reverse=True)
+            passed = [False for j in range(noOfCustomer)]
+            for j in range(len(Rtemp[currentAnchorPoint])):
+                check = True
+
+                for k in range(len(Rtemp[currentAnchorPoint][j][0])):
+                    if Rtemp[currentAnchorPoint][j][0][k] != -1 and passed[Rtemp[currentAnchorPoint][j][0][k]]:
+                        check = False
+
+                if check:
+                    Rfinal[currentAnchorPoint].append(Rtemp[currentAnchorPoint][j])
+
+                for k in range(len(Rfinal[currentAnchorPoint][-1][0])):
+                    if (Rfinal[currentAnchorPoint][-1][0][k] != -1):
+                        passed[Rfinal[currentAnchorPoint][-1][0][k]] = True
+        print("Rfinal")
+        printByLine(Rfinal)        
+
+        fitness = calculateFitness(copy.deepcopy(Dfinal), copy.deepcopy(Rfinal))                  
     return 0
 
 def crossOver():
     return 0
 
-def educate():
+def education():
     return 0
 
 def populationManagement():
@@ -125,11 +195,12 @@ if __name__ == "__main__":
     noOfCustomer , coorOfCustomers, noOfAnchorPoint, coorOfAnchorPoints = readData()
     # iterationMax = noOfCustomer
     iterationMax = 1
-    
+    Route = [[] for i in range(noOfAnchorPoint)]
+
     population = populationInitial()
     for i in range(iterationMax):
         crossOver()
-        educate()
+        education()
         populationManagement()
 
     print("END")

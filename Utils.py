@@ -4,6 +4,7 @@ TRUCK_SPEED = 40
 DRONE_SPEED = 50
 ENDURANCE_OF_DRONE = 10
 MAX_DISTANCE = 1000000
+NO_OF_DRONE = 5
 
 def printByLine(list):
     for ele in list:
