@@ -431,16 +431,16 @@ def education(Dfinal, Rfinal):
     #     Rfinal.append(route)
     # Rshort = []
     # Customer based education
-    for route in Rfinal:
-        if (len(route) > 3):
-            i, j = random.sample(range(1, len(Rshort) - 2), 2)   
-            tmpRoute = copy.deepcopy(route[0])
-            tmp = tmpRoute[i]
-            tmpRoute[i] = tmpRoute[j]
-            tmpRoute[j] = tmp
-            distance = calculateRoute(tmpRoute)
-            if (distance < route[1]):
-                route = tuple(tmpRoute, distance)
+    # for route in Rfinal:
+    #     if (len(route) > 3):
+    #         i, j = random.sample(range(1, len(Rfinal) - 2), 2)   
+    #         tmpRoute = copy.deepcopy(route[0])
+    #         tmp = tmpRoute[i]
+    #         tmpRoute[i] = tmpRoute[j]
+    #         tmpRoute[j] = tmp
+    #         distance = calculateRoute(tmpRoute)
+    #         if (distance < route[1]):
+    #             route = tuple(tmpRoute, distance)
     # Adjust the customer in two routes
     # Rtemp = Rfinal
     # i, j = random.sample(range(0, len(Rtemp) - 1), 2)
