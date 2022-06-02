@@ -64,7 +64,7 @@ def calculateFitness(Dfinal, Rfinal):
                             min = k
                     elif len(droneRoute[i][k]) < len(droneRoute[i][min]):
                         min = k
-                droneRoute[i][min].append(Rfinal[i][j])
+                droneRoute[i][min].append(copy.deepcopy(Rfinal[i][j]))
 
     # print("DroneRoute")
     # printByLine(droneRoute)
@@ -127,12 +127,12 @@ def populationInitial():
         # That anchor point is dmust
         for i in range(noOfCustomer):
             if (len(Ncover[i]) == 1):
-                dmust = Ncover[i][0]
-                Dfinal.append(dmust)
+                dmust = copy.deepcopy(Ncover[i][0])
+                Dfinal.append(copy.deepcopy(dmust))
                 Dtemp.remove(dmust)
                 for j in range(len(Dcover[dmust])):
-                    Nfinal.append(Dcover[dmust][j])
-                    Ntemp.remove(Dcover[dmust][j])
+                    Nfinal.append(copy.deepcopy(Dcover[dmust][j]))
+                    Ntemp.remove(copy.deepcopy(Dcover[dmust][j]))
         
         # Random choose anchor points with weight
         # For each anchor point add all the customer it cover to Nfinal
@@ -145,23 +145,23 @@ def populationInitial():
                     if (Ntemp.count(Dcover[Dtemp[i]][j]) > 0):
                         count += 1
 
-                weightD.append(count)
+                weightD.append(copy.deepcopy(count))
 
             drandom = random.choices(Dtemp, weights=weightD, k=1)
             Nnum = []
             for i in range(len(Ntemp)):
                 if (Dcover[drandom[0]].count(Ntemp[i]) > 0):
-                    Nnum.append(Ntemp[i])
+                    Nnum.append(copy.deepcopy(Ntemp[i]))
 
             if (len(Nnum) == 0):
                 continue
                 
-            Dfinal.append(drandom[0])
-            Dtemp.remove(drandom[0])
+            Dfinal.append(copy.deepcopy(drandom[0]))
+            Dtemp.remove(copy.deepcopy(drandom[0]))
             for i in range(len(Nnum)):
-                Nfinal.append(Nnum[i])
+                Nfinal.append(copy.deepcopy(Nnum[i]))
             for i in range(len(Nnum)):
-                Ntemp.remove(Nnum[i])
+                Ntemp.remove(copy.deepcopy(Nnum[i]))
         
         # print("Dfinal")
         # print(Dfinal)
@@ -201,17 +201,17 @@ def populationInitial():
                 else:
                     totalDistance += dist(coorOfCustomers[currentRoute[-1]], coorOfCustomers[currentCustomer])
                 if (totalDistance + dist(coorOfCustomers[currentCustomer], coorOfAnchorPoints[currentAnchorPoint]) <= ENDURANCE_OF_DRONE):
-                    currentRoute.append(currentCustomer)
+                    currentRoute.append(copy.deepcopy(currentCustomer))
                     tempRoute = copy.deepcopy(currentRoute)
                     tempRoute.append(-currentAnchorPoint - 1)
-                    Rtemp[currentAnchorPoint].append((tempRoute, totalDistance + dist(coorOfCustomers[currentCustomer], coorOfAnchorPoints[currentAnchorPoint])))
+                    Rtemp[currentAnchorPoint].append((copy.deepcopy(tempRoute), totalDistance + dist(coorOfCustomers[currentCustomer], coorOfAnchorPoints[currentAnchorPoint])))
                 else:
                     currentRoute = [-currentAnchorPoint - 1]
                     currentRoute.append(currentCustomer)
                     totalDistance = dist(coorOfAnchorPoints[currentAnchorPoint], coorOfCustomers[currentCustomer])
                     tempRoute = copy.deepcopy(currentRoute)
                     tempRoute.append(-currentAnchorPoint - 1)
-                    Rtemp[currentAnchorPoint].append((tempRoute, totalDistance + dist(coorOfCustomers[currentCustomer], coorOfAnchorPoints[currentAnchorPoint])))
+                    Rtemp[currentAnchorPoint].append((copy.deepcopy(tempRoute), totalDistance + dist(coorOfCustomers[currentCustomer], coorOfAnchorPoints[currentAnchorPoint])))
 
             Rtemp[currentAnchorPoint] = sorted(Rtemp[currentAnchorPoint], key=lambda x: (x[1]), reverse=True)
             passed = [False for j in range(noOfCustomer)]
@@ -223,7 +223,7 @@ def populationInitial():
                         check = False
 
                 if check:
-                    Rfinal[currentAnchorPoint].append(Rtemp[currentAnchorPoint][j])
+                    Rfinal[currentAnchorPoint].append(copy.deepcopy(Rtemp[currentAnchorPoint][j]))
 
                 for k in range(len(Rfinal[currentAnchorPoint][-1][0])):
                     if (Rfinal[currentAnchorPoint][-1][0][k] > 0):
@@ -232,7 +232,7 @@ def populationInitial():
         # printByLine(Rfinal)        
 
         fitness = calculateFitness(copy.deepcopy(Dfinal), copy.deepcopy(Rfinal))  
-        population = populationManagement(population, Dfinal, Rfinal, fitness)
+        population = populationManagement(copy.deepcopy(population), copy.deepcopy(Dfinal), copy.deepcopy(Rfinal), copy.deepcopy(fitness))
     return population
 
 def crossOver():
@@ -251,8 +251,8 @@ def crossOver():
             P2 = j
         if (P2 != P1):
             break
-    RP1 = population[P1][1]
-    RP2 = population[P2][1]
+    RP1 = copy.deepcopy(population[P1][1])
+    RP2 = copy.deepcopy(population[P2][1])
     # Extract all route in P1 and P2 and add to Rtotal
     Rtotal = []
     for i in range(len(RP1)):
@@ -264,8 +264,8 @@ def crossOver():
             for j in range(len(RP2[i])):
                 Rtotal.append(RP2[i][j])
     # Extract all anchor point in P1 and P2 and add to Dtotal
-    DP1 = population[P1][0]
-    DP2 = population[P2][0]
+    DP1 = copy.deepcopy(population[P1][0])
+    DP2 = copy.deepcopy(population[P2][0])
     Dtotal = []
     for i in range(len(DP1)):
         if (Dtotal.count(DP1[i]) == 0):
@@ -282,7 +282,7 @@ def crossOver():
         Rfinal.append(copy.deepcopy(Rtotal[0]))
         Rtotal.remove(Rfinal[-1])
         for i in range(len(Rfinal[-1][0])):
-            if (Rfinal[-1][0][i] > 0):
+            if (Rfinal[-1][0][i] >= 0):
                 deletedPoint = Rfinal[-1][0][i]
                 for j in range(len(Rtotal)):
                     for k in range(len(Rtotal[j][0])):
@@ -301,21 +301,21 @@ def crossOver():
     # weight of an anchor point = number of route connect to it            
     Rtemp = []
     while (len(Rfinal) > 0):
-        weightD = [0 for i in range(len(Dtotal))]
+        weightD = [1 for i in range(len(Dtotal))]
         for i in range(len(Rfinal)):
             anchorPoint = abs(Rfinal[i][0][0]) - 1
             for j in range(len(Dtotal)):
                 if Dtotal[j] == anchorPoint:
                     weightD[j] += 1
         drandom = random.choices(Dtotal, weights=weightD, k=1)[0]        
-        Dfinal.append(drandom)
+        Dfinal.append(copy.deepcopy(drandom))
         
         Rdelete = []
         for route in Rfinal:
             anchorPoint = abs(route[0][0]) - 1
             if drandom == anchorPoint:
-                Rtemp.append(route)
-                Rdelete.append(route)
+                Rtemp.append(copy.deepcopy(route))
+                Rdelete.append(copy.deepcopy(route))
             else:
                 routeTmp = copy.deepcopy(route)
                 routeTmp[0][0] = -drandom - 1
@@ -323,12 +323,13 @@ def crossOver():
                 tmp = tuple((routeTmp[0], calculateRoute(routeTmp[0])))
                 routeTmp = tmp
                 if (routeTmp[1] < ENDURANCE_OF_DRONE):
-                    Rtemp.append(routeTmp)
-                    Rdelete.append(route)
+                    Rtemp.append(copy.deepcopy(routeTmp))
+                    Rdelete.append(copy.deepcopy(route))
         
         for route in Rdelete:
             Rfinal.remove(route)
         Dtotal.remove(drandom)
+    # print("Crossover Result:")
     # print("Dfinal")
     # print(Dfinal)
     # print("Rtemp")
@@ -351,8 +352,9 @@ def education(Dfinal, Rfinal):
             Rtemp = copy.deepcopy(Rfinal)
             # Changable đảm bảo tất cả các cạnh trong anchor point đều có thể gán sang anchor point khác
             changable = True
-            for index, route in Rfinal:
-                anchorPoint = route[0][0]
+            index = 0
+            for route in Rfinal:
+                anchorPoint = abs(route[0][0]) - 1
                 if (changable and anchorPoint == d):
                     # Check để kiểm tra xem 1 anchor point có thể được gán sang anchor point khác hay không
                     check = False
@@ -370,6 +372,7 @@ def education(Dfinal, Rfinal):
                     if (not check):
                         changable = False
                         break
+                index += 1
             if (changable):
                 Rfinal = Rtemp
 
@@ -378,7 +381,7 @@ def education(Dfinal, Rfinal):
     Rshort = []
     for route in Rfinal:
         if (route[1] < SHORT_DIS):
-            Rshort.append(route)
+            Rshort.append(copy.deepcopy(route))
     for route in Rshort:
         Rfinal.remove(route)
     # Choose a random pair index1, index2 and try to merge them into a new route which still satisfy the distance constraint
@@ -396,16 +399,16 @@ def education(Dfinal, Rfinal):
         newRoute = []
         for i in range(len(route1[0])):
             if (route1[0][i] > 0):
-                newRoute.append(route1[0][i])
+                newRoute.append(copy.deepcopy(route1[0][i]))
         for i in range(len(route2[0])):
             if (route2[0][i] > 0):
-                newRoute.append(route2[0][i])
+                newRoute.append(copy.deepcopy(route2[0][i]))
         # Thử với từng anchorpoint thứ 1
         newRoute.insert(0, -anchorPoint1 - 1)
         newRoute.append(-anchorPoint1 - 1)
         distance = calculateRoute(newRoute)
         if (distance < ENDURANCE_OF_DRONE):
-            Rfinal.append((newRoute, distance))
+            Rfinal.append((copy.deepcopy(newRoute), distance))
             tmp1 = Rshort[index1]
             tmp2 = Rshort[index2]
             Rshort.remove(tmp1)
@@ -416,14 +419,14 @@ def education(Dfinal, Rfinal):
             newRoute[-1] = -anchorPoint2 - 1
             distance = calculateRoute(newRoute)
             if (distance < ENDURANCE_OF_DRONE):
-                Rfinal.append((newRoute, distance))
+                Rfinal.append((copy.deepcopy(newRoute), distance))
                 tmp1 = Rshort[index1]
                 tmp2 = Rshort[index2]
                 Rshort.remove(tmp1)
                 Rshort.remove(tmp2)
         iteration += 1
     for route in Rshort:
-        Rfinal.append(route)
+        Rfinal.append(copy.deepcopy(route))
     Rshort = []
     # Customer based education
     # Try to exchange the visit order of customer in a route.
@@ -455,13 +458,13 @@ def education(Dfinal, Rfinal):
     Rfinal = [[] for i in range(noOfAnchorPoint)]
     for route in Rtemp:
         anchorPoint = abs(route[0][0]) - 1
-        Rfinal[anchorPoint].append(route)
+        Rfinal[anchorPoint].append(copy.deepcopy(route))
 
     # print("Dfinal education")
     # print(Dfinal)
     # print("Rfinal education")
     # print(Rfinal)
-    return Dfinal, Rfinal, calculateFitness(Dfinal, Rfinal)
+    return Dfinal, Rfinal, calculateFitness(copy.deepcopy(Dfinal), copy.deepcopy(Rfinal))
 
 def populationManagement(population, Dfinal, Rfinal, fitness):
     ok = True
@@ -470,9 +473,9 @@ def populationManagement(population, Dfinal, Rfinal, fitness):
             ok = False
     if (ok):
         if (len(population) > noOfCustomer):
-            population = sorted(population, key=lambda x: (x[2]), reverse=False)
+            population = sorted(population, key=lambda x: (x[2]), reverse=True)
             population.pop(0)
-        population.append((Dfinal, Rfinal, fitness))
+        population.append((copy.deepcopy(Dfinal), copy.deepcopy(Rfinal), copy.deepcopy(fitness)))
     return population
 
 if __name__ == "__main__":
@@ -485,12 +488,28 @@ if __name__ == "__main__":
     print("Population")
     printByLine(population)
     
-    for i in range(len(population)):
+    for i in range(noOfCustomer):
+        # print("Population in step ", i)
         Dfinal, Rfinal = crossOver()
-        Dfinal, Rfinal, fitness = education(Dfinal, Rfinal)
-        population = populationManagement(population, Dfinal, Rfinal, fitness)
+        # print("Dfinal")
+        # print(Dfinal)
+        # print("Rfinal")
+        # print(Rfinal)
+        Dfinal, Rfinal, fitness = education(copy.deepcopy(Dfinal), copy.deepcopy(Rfinal))
+        # print("Dfinal")
+        # print(Dfinal)
+        # print("Rfinal")
+        # print(Rfinal)
+        print("Fitness in step ", i)
+        print(fitness)
+        population = populationManagement(copy.deepcopy(population), copy.deepcopy(Dfinal), copy.deepcopy(Rfinal), copy.deepcopy(fitness))
+        population = sorted(population, key=lambda x: (x[2]), reverse=True)
+        # print("Best solution in step ", i)
+        # print(population[-1][2])
+        # print("population")
+        # printByLine(population)
 
-    population = sorted(population, key=lambda x: (x[2]), reverse=False)
+    population = sorted(population, key=lambda x: (x[2]), reverse=True)
     print("Final solution")
-    print(population[-1])
+    printByLine(population[-1])
     print("END")
