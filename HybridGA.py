@@ -163,18 +163,26 @@ def populationInitial():
                 if (dist(coorOfAnchorPoints[Dtemp[i]], coorOfCustomers[Ntemp[j]]) <= ENDURANCE_OF_DRONE / 2):
                     Dcover[i].append(j)
                     Ncover[j].append(i)
-        
+
         # Find customer cover by only one anchor point
         # That anchor point is dmust
         for i in range(noOfCustomer):
             if (len(Ncover[i]) == 1):
                 dmust = copy.deepcopy(Ncover[i][0])
-                Dfinal.append(copy.deepcopy(dmust))
-                Dtemp.remove(dmust)
-                for j in range(len(Dcover[dmust])):
-                    Nfinal.append(copy.deepcopy(Dcover[dmust][j]))
-                    Ntemp.remove(copy.deepcopy(Dcover[dmust][j]))
-        
+                if (Dtemp.count(dmust) > 0):
+                    Dfinal.append(copy.deepcopy(dmust))
+                    Dtemp.remove(dmust)
+                    for j in range(len(Dcover[dmust])):
+                        if (Nfinal.count(copy.deepcopy(Dcover[dmust][j])) == 0):
+                            Nfinal.append(copy.deepcopy(Dcover[dmust][j]))
+                        if (Ntemp.count(Dcover[dmust][j]) > 0):
+                            Ntemp.remove(copy.deepcopy(Dcover[dmust][j]))
+        # print("Dfinal")
+        # print(Dfinal)
+        # print("Nfinal")
+        # Nfinal.sort()
+        # print(Nfinal)
+
         # Random choose anchor points with weight
         # For each anchor point add all the customer it cover to Nfinal
         while len(Ntemp) != 0:
@@ -449,6 +457,11 @@ def education(Dfinal, Rfinal):
         if (Dtemp.count(anchorPoint) == 0):
             Dtemp.append(anchorPoint)
     
+    # print("Anchor point based education result: ")
+    # print("Dtemp")
+    # print(Dtemp)
+    # print("Rfinal")
+    # print(Rfinal)
     # ROUTE BASED EDUCATION
     # Select all short route which have total distance < SHORT_DIS
     currentFitness = calculateFitness(Dtemp, prepareRouteForFitness(copy.deepcopy(Rfinal)))
@@ -525,6 +538,12 @@ def education(Dfinal, Rfinal):
     for route in Rshort:
         Rfinal.append(copy.deepcopy(route))
     Rshort = []
+
+    # print("Path based education result: ")
+    # print("Dtemp")
+    # print(Dtemp)
+    # print("Rfinal")
+    # print(Rfinal)
     # CUSTOMER BASED EDUCATION
     # Using 2-opt
     for route in Rfinal:
@@ -543,31 +562,24 @@ def education(Dfinal, Rfinal):
                                 route = (newRoute, newDistance)
                                 bestDistance = newDistance
                                 break
-    # Adjust the customer in two routes
-    # Rtemp = Rfinal
-    # i, j = random.sample(range(0, len(Rtemp) - 1), 2)
-    # if len(Rtemp[i][0]) >= 3:
-    #     k = random.randint(1, len(Rtemp[i][0]) - 2)
-    #     l = random.randint(1, len(Rtemp[j][0]) - 1)
-    #     Rtemp[j].insert(l, Rtemp[i][0][k])
-    #     Rtemp[i][0].pop(k)
-    #     if (calculateFitness(Dfinal, Rfinal))
-    # elif len(Rtemp[j][0] >= 3):
-    #     k = random.randint(1, len(Rtemp[j][0]) - 2)
-    #     l = random.randint(1, len(Rtemp[i][0]) - 1)
-
+    # print("Customer based education result: ")
+    # print("Dtemp")
+    # print(Dtemp)
+    # print("Rfinal")
+    # print(Rfinal)
     # Create Rfinal again for calculate fitness
     Rtemp = Rfinal
     Rfinal = [[] for i in range(noOfAnchorPoint)]
     for route in Rtemp:
         anchorPoint = abs(route[0][0]) - 1
         Rfinal[anchorPoint].append(copy.deepcopy(route))
-
-    # print("Dfinal education")
-    # print(Dfinal)
-    # print("Rfinal education")
+    
+    # print("Education result:")
+    # print("Dtemp")
+    # print(Dtemp)
+    # print("Rfinal")
     # print(Rfinal)
-    return Dfinal, Rfinal, calculateFitness(copy.deepcopy(Dfinal), copy.deepcopy(Rfinal))
+    return Dtemp, Rfinal, calculateFitness(copy.deepcopy(Dtemp), copy.deepcopy(Rfinal))
 
 def populationManagement(population, Dfinal, Rfinal, fitness):
     ok = True
@@ -604,6 +616,25 @@ if __name__ == "__main__":
         print(Dfinal)
         print("Rfinal in step ", i + 1)
         print(Rfinal)
+        droneRoute = [[[] for j in range(NO_OF_DRONE)] for i in range(noOfAnchorPoint)]
+        # print("Rfinal in calculate fitness")
+        # print(Rfinal)
+        for i in range(noOfAnchorPoint):
+            if (len(Rfinal[i]) > 0):
+                totalDistanceOfDrone = [0 for i in range(NO_OF_DRONE)]
+                minTotalDistance = MAX_DISTANCE
+                for j in range(len(Rfinal[i])):
+                    min = -1
+                    for k in range(NO_OF_DRONE):
+                        if len(droneRoute[i][k]) == 0:
+                            min = k
+                            break
+                        elif totalDistanceOfDrone[k] < minTotalDistance:
+                            min = k
+                    droneRoute[i][min].append(copy.deepcopy(Rfinal[i][j]))
+                    totalDistanceOfDrone[min] += Rfinal[i][j][1]
+        print("DroneRoute")
+        printByLine(droneRoute)
         print("Fitness in step ", i + 1)
         print(fitness)
         print("\n")

@@ -59,4 +59,4 @@ def genData(noOfAnchorPoint):
     plt.show()
 
 if __name__ == "__main__":
-    genData(15)
+    genData(10)
