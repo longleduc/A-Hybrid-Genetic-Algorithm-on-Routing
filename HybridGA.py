@@ -1,5 +1,6 @@
 # HOW TO RUN THE CODE 
 # python HybridGA.py "name of instance file" e.g: python HybridGA.py 100.10.1
+from fileinput import filename
 from os import urandom
 from re import L
 import statistics
@@ -18,7 +19,12 @@ noOfAnchorPoint = 0
 coorOfCustomers = []
 coorOfAnchorPoints = []
 droneRoute = []
+bestSolution = []
+markCrossOver = []
+solutionEachStep = []
 
+populationNumber = 0
+populationSize = 0
 iterationMax = 0
 
 #Read data from txt file
@@ -42,6 +48,24 @@ def readData():
 
     return noOfCustomer, np.array(coorOfCustomers), noOfAnchorPoint, np.array(coorOfAnchorPoints)
 
+def createDroneRoute(Rfinal):
+    droneRoute = [[[] for j in range(NO_OF_DRONE)] for i in range(noOfAnchorPoint)]
+    # print("Rfinal in calculate fitness")
+    # print(Rfinal)
+    for i in range(noOfAnchorPoint):
+        if (len(Rfinal[i]) > 0):
+            totalDistanceOfDrone = [0 for i in range(NO_OF_DRONE)]
+            for j in range(len(Rfinal[i])):
+                minTotalDistance = MAX_DISTANCE
+                min = -1
+                for k in range(NO_OF_DRONE):
+                    if totalDistanceOfDrone[k] < minTotalDistance:
+                        min = copy.deepcopy(k)
+                        minTotalDistance = copy.deepcopy(totalDistanceOfDrone[k])
+                droneRoute[i][min].append(copy.deepcopy(Rfinal[i][j]))
+                totalDistanceOfDrone[min] += Rfinal[i][j][1]
+    return droneRoute
+    
 def prepareRouteForFitness(Rtemp):
     Rfinal = [[] for i in range(noOfAnchorPoint)]
     for route in Rtemp:
@@ -71,23 +95,25 @@ def calculateRouteAnchorPoint(D):
 
 def calculateFitness(Dfinal, Rfinal):
     totalTimeDroneEachAnchorPoint = [0 for i in range(noOfAnchorPoint)]
-    droneRoute = [[[] for j in range(NO_OF_DRONE)] for i in range(noOfAnchorPoint)]
-    # print("Rfinal in calculate fitness")
-    # print(Rfinal)
-    for i in range(noOfAnchorPoint):
-        if (len(Rfinal[i]) > 0):
-            totalDistanceOfDrone = [0 for i in range(NO_OF_DRONE)]
-            minTotalDistance = MAX_DISTANCE
-            for j in range(len(Rfinal[i])):
-                min = -1
-                for k in range(NO_OF_DRONE):
-                    if len(droneRoute[i][k]) == 0:
-                        min = k
-                        break
-                    elif totalDistanceOfDrone[k] < minTotalDistance:
-                        min = k
-                droneRoute[i][min].append(copy.deepcopy(Rfinal[i][j]))
-                totalDistanceOfDrone[min] += Rfinal[i][j][1]
+    # droneRoute = [[[] for j in range(NO_OF_DRONE)] for i in range(noOfAnchorPoint)]
+    # # print("Rfinal in calculate fitness")
+    # # print(Rfinal)
+    # for i in range(noOfAnchorPoint):
+    #     if (len(Rfinal[i]) > 0):
+    #         totalDistanceOfDrone = [0 for i in range(NO_OF_DRONE)]
+    #         minTotalDistance = MAX_DISTANCE
+    #         for j in range(len(Rfinal[i])):
+    #             min = -1
+    #             for k in range(NO_OF_DRONE):
+    #                 if len(droneRoute[i][k]) == 0:
+    #                     min = k
+    #                     break
+    #                 elif totalDistanceOfDrone[k] < minTotalDistance:
+    #                     min = k
+    #                     minTotalDistance = totalDistanceOfDrone[k]
+    #             droneRoute[i][min].append(copy.deepcopy(Rfinal[i][j]))
+    #             totalDistanceOfDrone[min] += Rfinal[i][j][1]
+    droneRoute = createDroneRoute(copy.deepcopy(Rfinal))
 
     # print("DroneRoute")
     # printByLine(droneRoute)
@@ -139,10 +165,16 @@ def calculateFitness(Dfinal, Rfinal):
     totalTimeTruck = bestDistance / TRUCK_SPEED
     return totalTimeDrone + totalTimeTruck
 
+def binaryTournament(population):
+    i, j = random.sample(range(0, len(population)), 2)
+    if (population[i][2] > population[j][2]):
+        return i
+    return j
+
 def populationInitial():
     population = []
     iteration = 0
-    while (iteration < iterationMax or len(population) < 3):
+    while (len(population) == populationSize or iteration < iterationMax or len(population) < 3):
         iteration += 1
         Dtemp = []
         Ntemp = []
@@ -289,20 +321,20 @@ def populationInitial():
 
 def crossOver():
     # Binary tournament to choose Parent 1 and Parent 2 for cross over
-    i, j = random.sample(range(0, len(population)), 2)
-    if (population[i][2] > population[j][2]):
-        P1 = i
-    else:
-        P1 = j
-    P2 = P1
     while (True):
-        i, j = random.sample(range(0, len(population)), 2)
-        if (population[i][2] > population[j][2]):
-            P2 = i
-        else:
-            P2 = j
-        if (P2 != P1):
+        P1 = binaryTournament(copy.deepcopy(population))
+        while (True):
+            P2 = binaryTournament(copy.deepcopy(population))
+            if (P2 != P1):
+                break
+        index1 = population[P1][3]
+        index2 = population[P2][3]
+        if (markCrossOver.count((index1, index2)) == 0 and markCrossOver.count((index2, index1)) == 0):
+            markCrossOver.append((index1, index2))
+            markCrossOver.append((index2, index1))
             break
+        # print("NO CROSS AGAIN!")
+        
     RP1 = copy.deepcopy(population[P1][1])
     RP2 = copy.deepcopy(population[P2][1])
     # Extract all route in P1 and P2 and add to Rtotal
@@ -544,6 +576,7 @@ def education(Dfinal, Rfinal):
     # print(Dtemp)
     # print("Rfinal")
     # print(Rfinal)
+    
     # CUSTOMER BASED EDUCATION
     # Using 2-opt
     for route in Rfinal:
@@ -562,6 +595,109 @@ def education(Dfinal, Rfinal):
                                 route = (newRoute, newDistance)
                                 bestDistance = newDistance
                                 break
+    # Exchange in each route
+    for route in Rfinal:
+        if (len(route[0]) > 3):
+            for i in range(len(route[0])):
+                if (route[0][i] >= 0):
+                    newRoute = copy.deepcopy(route[0])
+                    for j in range(len(route[0])):
+                        if (route[0][j] >= 0):
+                            tmp = newRoute[i]
+                            newRoute[i] = newRoute[j]
+                            newRoute[j] = tmp
+                            newDistance = calculateRoute(newRoute)
+                            if (newDistance < route[0][1]):
+                                route = (newRoute, newDistance)
+                                break
+    # Replace in each route
+    for route in Rfinal:
+        if (len(route[0]) > 3):
+            for i in range(len(route[0])):
+                if (route[0][i] >= 0):
+                    newRoute = copy.deepcopy(route[0])
+                    for j in range(len(route[0])):
+                        if j > 0 and j < len(route[0]) - 1 and  j != i:
+                            newRoute.pop(i)
+                            newRoute.insert(j, route[0][i])
+                            newDistance = calculateRoute(newRoute)
+                            if (newDistance < route[0][1]):
+                                route = (newRoute, newDistance)
+                                break
+    
+    # Exchange in two neighboring route
+    for i in range(len(Rfinal)):
+        route1 = copy.deepcopy(Rfinal[i][0])
+        fitnessRoute1 = Rfinal[i][1]
+        for j in range(len(Rfinal)):
+            if (i != j):
+                route2 = copy.deepcopy(Rfinal[j][0])
+                fitnessRoute2 = Rfinal[j][1]
+                for index1 in range(len(route1)):
+                    customer1 = copy.deepcopy(route1[index1])
+                    if (customer1 >= 0):
+                        for index2 in range(len(route2)):
+                            customer2 = copy.deepcopy(route2[index2])
+                            if (customer2 >= 0):
+                                newRoute1 = copy.deepcopy(route1)
+                                newRoute2 = copy.deepcopy(route2)
+                                newRoute1[index1] = customer2
+                                newRoute2[index2] = customer1
+                                newFitnessRoute1 = calculateRoute(newRoute1)
+                                newFitnessRoute2 = calculateRoute(newRoute2)
+                                if (newFitnessRoute1 < ENDURANCE_OF_DRONE 
+                                and newFitnessRoute2 < ENDURANCE_OF_DRONE 
+                                and newFitnessRoute1 + newFitnessRoute2 < fitnessRoute1 + fitnessRoute2):
+                                    Rfinal[i] = (newRoute1, newFitnessRoute1)
+                                    Rfinal[j] = (newRoute2, newFitnessRoute2)
+                                    # print("SWAP TWO NEIGHBOR ROUTE:")
+                                    # print(route1)
+                                    # print(route2)
+                                    # print(newRoute1)
+                                    # print(newRoute2)
+                                    route1 = newRoute1
+                                    route2 = newRoute2
+                                    fitnessRoute1 = newFitnessRoute1
+                                    fitnessRoute2 = newFitnessRoute2
+                                    customer1 = route1[index1]
+                                    customer2 = route2[index2]
+                                    
+    # Replace between two neighboring route
+    # for i in range(len(Rfinal)):
+    #     route1 = copy.deepcopy(Rfinal[i][0])
+    #     fitnessRoute1 = Rfinal[i][1]
+    #     for j in range(len(Rfinal)):
+    #         if (i != j):
+    #             route2 = copy.deepcopy(Rfinal[j][0])
+    #             fitnessRoute2 = Rfinal[j][1]
+    #             for index1 in range(len(route1)):
+    #                 customer1 = copy.deepcopy(route1[index1])
+    #                 if (customer1 >= 0):
+    #                     for index2 in range(len(route2)):
+    #                         if (index2 > 0 and index2 < len(route2) - 1):
+    #                             newRoute1 = copy.deepcopy(route1)
+    #                             newRoute2 = copy.deepcopy(route2)
+    #                             newRoute1.remove(customer1)
+    #                             newRoute2.insert(index2, customer1)
+    #                             newFitnessRoute1 = calculateRoute(newRoute1)
+    #                             newFitnessRoute2 = calculateRoute(newRoute2)
+    #                             if (newFitnessRoute1 < ENDURANCE_OF_DRONE 
+    #                             and newFitnessRoute2 < ENDURANCE_OF_DRONE 
+    #                             and newFitnessRoute1 + newFitnessRoute2 < fitnessRoute1 + fitnessRoute2):
+    #                                 Rfinal[i] = (newRoute1, newFitnessRoute1)
+    #                                 Rfinal[j] = (newRoute2, newFitnessRoute2)
+    #                                 # print("SWAP TWO NEIGHBOR ROUTE:")
+    #                                 # print(route1)
+    #                                 # print(route2)
+    #                                 # print(newRoute1)
+    #                                 # print(newRoute2)
+    #                                 route1 = newRoute1
+    #                                 route2 = newRoute2
+    #                                 fitnessRoute1 = newFitnessRoute1
+    #                                 fitnessRoute2 = newFitnessRoute2
+    #                                 customer1 = -1
+    #                                 break
+
     # print("Customer based education result: ")
     # print("Dtemp")
     # print(Dtemp)
@@ -582,6 +718,7 @@ def education(Dfinal, Rfinal):
     return Dtemp, Rfinal, calculateFitness(copy.deepcopy(Dtemp), copy.deepcopy(Rfinal))
 
 def populationManagement(population, Dfinal, Rfinal, fitness):
+    global populationNumber
     ok = True
     for i in range(len(population)):
         if (abs(fitness - population[i][2]) < DELTA):
@@ -590,12 +727,14 @@ def populationManagement(population, Dfinal, Rfinal, fitness):
         if (len(population) > noOfCustomer):
             population = sorted(population, key=lambda x: (x[2]), reverse=True)
             population.pop(0)
-        population.append((copy.deepcopy(Dfinal), copy.deepcopy(Rfinal), copy.deepcopy(fitness)))
+        populationNumber += 1
+        population.append((copy.deepcopy(Dfinal), copy.deepcopy(Rfinal), copy.deepcopy(fitness), populationNumber))
     return population
 
 if __name__ == "__main__":
     noOfCustomer , coorOfCustomers, noOfAnchorPoint, coorOfAnchorPoints = readData()
-    iterationMax = 30
+    iterationMax = noOfCustomer
+    populationSize = 20
     # iterationMax = 2
     Route = [[] for i in range(noOfAnchorPoint)]
 
@@ -604,7 +743,7 @@ if __name__ == "__main__":
     printByLine(population)
     print("\n")
 
-    for i in range(noOfCustomer):
+    for i in range(1000):
         # print("Population in step ", i)
         Dfinal, Rfinal = crossOver()
         # print("Dfinal")
@@ -616,23 +755,7 @@ if __name__ == "__main__":
         print(Dfinal)
         print("Rfinal in step ", i + 1)
         print(Rfinal)
-        droneRoute = [[[] for j in range(NO_OF_DRONE)] for i in range(noOfAnchorPoint)]
-        # print("Rfinal in calculate fitness")
-        # print(Rfinal)
-        for i in range(noOfAnchorPoint):
-            if (len(Rfinal[i]) > 0):
-                totalDistanceOfDrone = [0 for i in range(NO_OF_DRONE)]
-                minTotalDistance = MAX_DISTANCE
-                for j in range(len(Rfinal[i])):
-                    min = -1
-                    for k in range(NO_OF_DRONE):
-                        if len(droneRoute[i][k]) == 0:
-                            min = k
-                            break
-                        elif totalDistanceOfDrone[k] < minTotalDistance:
-                            min = k
-                    droneRoute[i][min].append(copy.deepcopy(Rfinal[i][j]))
-                    totalDistanceOfDrone[min] += Rfinal[i][j][1]
+        droneRoute = createDroneRoute(copy.deepcopy(Rfinal))    
         print("DroneRoute")
         printByLine(droneRoute)
         print("Fitness in step ", i + 1)
@@ -640,6 +763,8 @@ if __name__ == "__main__":
         print("\n")
         population = populationManagement(copy.deepcopy(population), copy.deepcopy(Dfinal), copy.deepcopy(Rfinal), copy.deepcopy(fitness))
         population = sorted(population, key=lambda x: (x[2]), reverse=True)
+        bestSolution.append(population[-1][2])
+        solutionEachStep.append(fitness)
         # print("Best solution in step ", i)
         # print(population[-1][2])
         # print("population")
@@ -647,5 +772,14 @@ if __name__ == "__main__":
 
     population = sorted(population, key=lambda x: (x[2]), reverse=True)
     print("Final solution")
-    printByLine(population[-1])
+    for i in range(len(bestSolution)):
+        print("Best solution in step ", i, ": ", bestSolution[i])
+
+    xAxis = [i for i in range(len(bestSolution))]
+    plt.plot(xAxis[::20],solutionEachStep[::20])
+    plt.xlabel('Number of iteration')
+    plt.ylabel('Total time cost')
+    plt.title(str(sys.argv[1]))
+    plt.savefig('./Result Images/' + str(sys.argv[1]) + '.png')
+    plt.show()
     print("END")
