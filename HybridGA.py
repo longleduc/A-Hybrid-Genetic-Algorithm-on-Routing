@@ -500,7 +500,7 @@ def education(Dfinal, Rfinal):
     tmpArr = []
     for route in Rfinal:
         tmpArr.append(copy.deepcopy(route[1]))
-    SHORT_DIS = np.median(tmpArr) + 0.5
+    SHORT_DIS = np.median(tmpArr) + 1
     Rshort = []
     for route in Rfinal:
         if (route[1] < SHORT_DIS):
