@@ -13,6 +13,7 @@ import random
 import copy
 from sklearn.cluster import KMeans
 import matplotlib.pyplot as plt
+from time import time
 
 noOfCustomer = 0
 noOfAnchorPoint = 0
@@ -732,6 +733,7 @@ def populationManagement(population, Dfinal, Rfinal, fitness):
     return population
 
 if __name__ == "__main__":
+    t0 = time()
     noOfCustomer , coorOfCustomers, noOfAnchorPoint, coorOfAnchorPoints = readData()
     iterationMax = noOfCustomer
     populationSize = 20
@@ -776,10 +778,13 @@ if __name__ == "__main__":
         print("Best solution in step ", i, ": ", bestSolution[i])
 
     xAxis = [i for i in range(len(bestSolution))]
+    t1 = time()
     plt.plot(xAxis[::20],solutionEachStep[::20])
     plt.xlabel('Number of iteration')
     plt.ylabel('Total time cost')
     plt.title(str(sys.argv[1]))
     plt.savefig('./Result Images/' + str(sys.argv[1]) + '.png')
     plt.show()
+    
+    print(f"{t1-t0}")
     print("END")
