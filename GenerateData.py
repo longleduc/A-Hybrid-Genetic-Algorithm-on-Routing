@@ -54,8 +54,8 @@ def genData(noOfAnchorPoint):
     for i in range(len(circles)):
         plt.gca().add_artist(circles[i])
 
-    plt.xlim(-12, 12)
-    plt.ylim(-12, 12)
+    plt.xlim(-15, 15)
+    plt.ylim(-15, 15)
     plt.show()
 
 if __name__ == "__main__":

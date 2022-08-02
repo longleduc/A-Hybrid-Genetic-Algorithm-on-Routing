@@ -31,7 +31,7 @@ iterationMax = 0
 #Read data from txt file
 def readData():
     fileName = str(sys.argv[1])
-    f = open("NewInstances/" + fileName + ".txt", "r")
+    f = open("NewInstancesCell/" + fileName + ".txt", "r")
 
     noOfCustomer = int(f.readline())
 
@@ -76,6 +76,8 @@ def prepareRouteForFitness(Rtemp):
 
 def calculateRoute(route):
     totalDistance = 0
+    if (len(route) == 2):
+        return 0  
     for i in range(1, len(route)):
         if (i == 1):
             totalDistance += dist(coorOfAnchorPoints[abs(route[i - 1]) - 1], coorOfCustomers[route[i]])
@@ -439,9 +441,11 @@ def education(Dfinal, Rfinal):
     # ANCHOR POINT BASED EDUCATION
     Ddelete = []
     Dtemp = copy.deepcopy(Dfinal)
-    numRouteInAnchorPoint = [0 for i in range(noOfCustomer)]
+    numRouteInAnchorPoint = [0 for i in range(noOfAnchorPoint)]
     for route in Rfinal:
         anchorPoint = abs(route[0][0]) - 1
+        print("Anchor point")
+        print(anchorPoint)
         numRouteInAnchorPoint[anchorPoint] += 1
     tmpArr = []
     for anchorPoint in Dtemp:

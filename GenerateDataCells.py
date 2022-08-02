@@ -10,7 +10,6 @@ import random
 import copy
 import matplotlib.pyplot as plt
 
-coordinators = [(-3, 3), (0, 3), (3, 3), (3, 0), (3, -3), (0, -3), (-3, -3), (-3, 0)]
 coorOfAnchorPoint = []
 def genData():
     fileName = str(sys.argv[1])
@@ -32,19 +31,26 @@ def genData():
     for i in range(noOfCustomer):
         f1.write(str(coorOfCustomer[i][0]) + " " + str(coorOfCustomer[i][1]) + " " + str(demands[i]) + "\n")
     splitArr = fileName.split(".")
-    noOfAnchorPoint = int(splitArr[1]) // 6 * 8
+    # noOfAnchorPoint = int(splitArr[1]) // 6 * 8
     numberOfIteration = int(splitArr[1]) // 6
-    f1.writelines(str(noOfAnchorPoint) + "\n")
+    coordinators = [0]
     for i in range(numberOfIteration):
-        for coordinator in coordinators:
-            f1.writelines(str(coordinator[0] * (i + 1)) + " " + str(coordinator[1] * (i + 1)) + "\n")
-            coorOfAnchorPoint.append([coordinator[0] * (i + 1), coordinator[1] * (i + 1)])
+        coordinators.append(3 * (i + 1))
+        coordinators.append(-3 * (i + 1))
+    noOfAnchorPoint = len(coordinators) * len(coordinators) - 1
+    f1.writelines(str(noOfAnchorPoint) + "\n")
+    for x in coordinators:
+        for y in coordinators:
+            if x == y and x == 0:
+                continue
+            f1.writelines(str(x) + " " + str(y) + "\n")
+            coorOfAnchorPoint.append([x, y])
     fig, ax = plt.subplots()
     customerX, customerY = map(list, zip(*coorOfCustomer))
     anchorX, anchorY = map(list, zip(*coorOfAnchorPoint))
 
-    for x, y in coorOfAnchorPoint:
-        ax.add_patch(plt.Circle((x,y),5,color='black', fill=False))
+    # for x, y in coorOfAnchorPoint:
+    #     ax.add_patch(plt.Circle((x,y),5,color='black', fill=False))
 
     ax.set_aspect('equal')
     ax.scatter(customerX, customerY, c='#008DC0', s=20)
