@@ -444,8 +444,6 @@ def education(Dfinal, Rfinal):
     numRouteInAnchorPoint = [0 for i in range(noOfAnchorPoint)]
     for route in Rfinal:
         anchorPoint = abs(route[0][0]) - 1
-        print("Anchor point")
-        print(anchorPoint)
         numRouteInAnchorPoint[anchorPoint] += 1
     tmpArr = []
     for anchorPoint in Dtemp:
