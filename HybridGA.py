@@ -98,24 +98,6 @@ def calculateRouteAnchorPoint(D):
 
 def calculateFitness(Dfinal, Rfinal):
     totalTimeDroneEachAnchorPoint = [0 for i in range(noOfAnchorPoint)]
-    # droneRoute = [[[] for j in range(NO_OF_DRONE)] for i in range(noOfAnchorPoint)]
-    # # print("Rfinal in calculate fitness")
-    # # print(Rfinal)
-    # for i in range(noOfAnchorPoint):
-    #     if (len(Rfinal[i]) > 0):
-    #         totalDistanceOfDrone = [0 for i in range(NO_OF_DRONE)]
-    #         minTotalDistance = MAX_DISTANCE
-    #         for j in range(len(Rfinal[i])):
-    #             min = -1
-    #             for k in range(NO_OF_DRONE):
-    #                 if len(droneRoute[i][k]) == 0:
-    #                     min = k
-    #                     break
-    #                 elif totalDistanceOfDrone[k] < minTotalDistance:
-    #                     min = k
-    #                     minTotalDistance = totalDistanceOfDrone[k]
-    #             droneRoute[i][min].append(copy.deepcopy(Rfinal[i][j]))
-    #             totalDistanceOfDrone[min] += Rfinal[i][j][1]
     droneRoute = createDroneRoute(copy.deepcopy(Rfinal))
 
     # print("DroneRoute")
@@ -665,42 +647,6 @@ def education(Dfinal, Rfinal):
                                     customer1 = route1[index1]
                                     customer2 = route2[index2]
                                     
-    # Replace between two neighboring route
-    # for i in range(len(Rfinal)):
-    #     route1 = copy.deepcopy(Rfinal[i][0])
-    #     fitnessRoute1 = Rfinal[i][1]
-    #     for j in range(len(Rfinal)):
-    #         if (i != j):
-    #             route2 = copy.deepcopy(Rfinal[j][0])
-    #             fitnessRoute2 = Rfinal[j][1]
-    #             for index1 in range(len(route1)):
-    #                 customer1 = copy.deepcopy(route1[index1])
-    #                 if (customer1 >= 0):
-    #                     for index2 in range(len(route2)):
-    #                         if (index2 > 0 and index2 < len(route2) - 1):
-    #                             newRoute1 = copy.deepcopy(route1)
-    #                             newRoute2 = copy.deepcopy(route2)
-    #                             newRoute1.remove(customer1)
-    #                             newRoute2.insert(index2, customer1)
-    #                             newFitnessRoute1 = calculateRoute(newRoute1)
-    #                             newFitnessRoute2 = calculateRoute(newRoute2)
-    #                             if (newFitnessRoute1 < ENDURANCE_OF_DRONE 
-    #                             and newFitnessRoute2 < ENDURANCE_OF_DRONE 
-    #                             and newFitnessRoute1 + newFitnessRoute2 < fitnessRoute1 + fitnessRoute2):
-    #                                 Rfinal[i] = (newRoute1, newFitnessRoute1)
-    #                                 Rfinal[j] = (newRoute2, newFitnessRoute2)
-    #                                 # print("SWAP TWO NEIGHBOR ROUTE:")
-    #                                 # print(route1)
-    #                                 # print(route2)
-    #                                 # print(newRoute1)
-    #                                 # print(newRoute2)
-    #                                 route1 = newRoute1
-    #                                 route2 = newRoute2
-    #                                 fitnessRoute1 = newFitnessRoute1
-    #                                 fitnessRoute2 = newFitnessRoute2
-    #                                 customer1 = -1
-    #                                 break
-
     # print("Customer based education result: ")
     # print("Dtemp")
     # print(Dtemp)
